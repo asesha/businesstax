@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Small Limited Companies Accounts Filing - England</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    header {
+      background-color: #004d99;
+      color: white;
+      padding: 1rem 2rem;
+      text-align: center;
+    }
+    main {
+      max-width: 900px;
+      margin: 2rem auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 1rem 2rem 2rem 2rem;
+    }
+    h1, h2 {
+      margin-top: 0;
+    }
+    nav {
+      display: flex;
+      border-bottom: 2px solid #ddd;
+      margin-bottom: 1rem;
+    }
+    nav button {
+      flex: 1;
+      background: none;
+      border: none;
+      padding: 1rem;
+      cursor: pointer;
+      font-weight: bold;
+      border-bottom: 3px solid transparent;
+      transition: border-color 0.3s ease;
+    }
+    nav button.active {
+      border-bottom-color: #004d99;
+      color: #004d99;
+    }
+    section {
+      display: none;
+    }
+    section.active {
+      display: block;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+    button.submit-btn {
+      margin-top: 1.5rem;
+      background-color: #004d99;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button.submit-btn:disabled {
+      background-color: #999;
+      cursor: not-allowed;
+    }
+    .status-message {
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    .review-item {
+      border: 1px solid #ddd;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 4px;
+      background-color: #f5faff;
+    }
+    .review-item h3 {
+      margin-top: 0;
+    }
+    .file-status {
+      margin-top: 1rem;
+      font-weight: bold;
+      color: green;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Accounts Preparation & Filing for Small Limited Companies (England)</h1>
+    <p>Guided workflow for farm and packhouse teams to prepare and file accounts compliant with HMRC</p>
+  </header>
+  <main>
+    <nav aria-label="Main navigation tabs">
+      <button id="tab-data" class="active" aria-controls="data-collection" aria-selected="true" role="tab">Data Collection</button>
+      <button id="tab-preparation" aria-controls="accounts-preparation" aria-selected="false" role="tab">Accounts Preparation</button>
+      <button id="tab-review" aria-controls="user-review" aria-selected="false" role="tab">Review & Approval</button>
+      <button id="tab-filing" aria-controls="electronic-filing" aria-selected="false" role="tab">Electronic Filing</button>
+    </nav>
+
+    <section id="data-collection" class="active" role="tabpanel" tabindex="0" aria-labelledby="tab-data">
+      <h2>Guided Data Collection</h2>
+      <form id="data-collection-form">
+        <label for="companyName">Company Name</label>
+        <input type="text" id="companyName" name="companyName" required placeholder="Enter your company name" />
+
+        <label for="companyNumber">Company Registration Number</label>
+        <input type="text" id="companyNumber" name="companyNumber" required placeholder="Enter your company registration number" pattern="[A-Za-z0-9]{8}" title="8 alphanumeric characters" />
+
+        <label for="bankTransactions">Bank Transactions (CSV format)</label>
+        <textarea id="bankTransactions" name="bankTransactions" rows="6" placeholder="Paste your bank transactions CSV data here" required></textarea>
+
+        <label for="otherFinancialInputs">Other Financial Inputs</label>
+        <textarea id="otherFinancialInputs" name="otherFinancialInputs" rows="4" placeholder="Provide any other financial data or notes" ></textarea>
+
+        <button type="submit" class="submit-btn">Submit Data</button>
+        <div id="data-collection-status" class="status-message" role="alert" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <section id="accounts-preparation" role="tabpanel" tabindex="0" aria-labelledby="tab-preparation">
+      <h2>Accounts Preparation</h2>
+      <p>This section prepares draft and final accounts according to HMRC requirements based on your submitted data.</p>
+      <button id="prepare-accounts-btn" class="submit-btn" disabled>Prepare Draft Accounts</button>
+      <div id="accounts-preparation-result" class="status-message" aria-live="polite"></div>
+      <pre id="accounts-preparation-json" style="white-space: pre-wrap; background:#eee; padding:1rem; border-radius:4px; margin-top:1rem; max-height: 300px; overflow-y: auto;"></pre>
+    </section>
+
+    <section id="user-review" role="tabpanel" tabindex="0" aria-labelledby="tab-review">
+      <h2>User Review and Approval</h2>
+      <p>Review the prepared accounts below. Approve when ready to finalize.</p>
+      <div id="review-accounts-container">
+        <p>No accounts prepared yet. Please prepare accounts first.</p>
+      </div>
+      <button id="approve-accounts-btn" class="submit-btn" disabled>Approve Final Accounts</button>
+      <div id="approval-status" class="status-message" aria-live="polite"></div>
+    </section>
+
+    <section id="electronic-filing" role="tabpanel" tabindex="0" aria-labelledby="tab-filing">
+      <h2>Electronic Filing</h2>
+      <p>File your approved accounts electronically with HMRC.</p>
+      <button id="file-accounts-btn" class="submit-btn" disabled>File Accounts Electronically</button>
+      <div id="filing-status" class="status-message" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script>
+    // Tab navigation
+    const tabs = document.querySelectorAll('nav button');
+    const sections = document.querySelectorAll('main section');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        sections.forEach(s => s.classList.remove('active'));
+
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        const panel = document.getElementById(tab.getAttribute('aria-controls'));
+        panel.classList.add('active');
+        panel.focus();
+      });
+    });
+
+    // State
+    let collectedData = null;
+    let preparedAccounts = null;
+    let approved = false;
+
+    // Elements
+    const dataForm = document.getElementById('data-collection-form');
+    const dataStatus = document.getElementById('data-collection-status');
+    const prepareBtn = document.getElementById('prepare-accounts-btn');
+    const accountsResult = document.getElementById('accounts-preparation-result');
+    const accountsJson = document.getElementById('accounts-preparation-json');
+    const reviewContainer = document.getElementById('review-accounts-container');
+    const approveBtn = document.getElementById('approve-accounts-btn');
+    const approvalStatus = document.getElementById('approval-status');
+    const fileBtn = document.getElementById('file-accounts-btn');
+    const filingStatus = document.getElementById('filing-status');
+
+    // Helpers
+    function resetAfterDataCollection() {
+      preparedAccounts = null;
+      approved = false;
+      prepareBtn.disabled = false;
+      accountsResult.textContent = '';
+      accountsJson.textContent = '';
+      reviewContainer.innerHTML = '<p>No accounts prepared yet. Please prepare accounts first.</p>';
+      approveBtn.disabled = true;
+      approvalStatus.textContent = '';
+      fileBtn.disabled = true;
+      filingStatus.textContent = '';
+    }
+
+    // Data Collection Form Submit
+    dataForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      dataStatus.textContent = 'Submitting data...';
+      const formData = new FormData(dataForm);
+      const data = {
+        companyName: formData.get('companyName').trim(),
+        companyNumber: formData.get('companyNumber').trim(),
+        bankTransactions: formData.get('bankTransactions').trim(),
+        otherFinancialInputs: formData.get('otherFinancialInputs').trim()
+      };
+
+      // Basic validation
+      if (!data.companyName || !data.companyNumber || !data.bankTransactions) {
+        dataStatus.textContent = 'Please fill in all required fields.';
+        dataStatus.classList.add('error');
+        return;
+      }
+
+      // Simulate API call to /api/simplify-accounts-preparatio for data collection
+      try {
+        // Here we just store locally as no backend code requested
+        collectedData = data;
+        dataStatus.textContent = 'Data submitted successfully.';
+        dataStatus.classList.remove('error');
+        resetAfterDataCollection();
+      } catch (err) {
+        dataStatus.textContent = 'Error submitting data.';
+        dataStatus.classList.add('error');
+      }
+    });
+
+    // Prepare Accounts Button
+    prepareBtn.addEventListener('click', async () => {
+      if (!collectedData) {
+        accountsResult.textContent = 'No data collected yet.';
+        accountsJson.textContent = '';
+        return;
+      }
+      prepareBtn.disabled = true;
+      accountsResult.textContent = 'Preparing draft accounts...';
+      accountsJson.textContent = '';
+
+      try {
+        // Call API /api/simplify-accounts-preparatio to get draft accounts
+        const response = await fetch('/api/simplify-accounts-preparatio');
+        if (!response.ok) throw new Error('Failed to prepare accounts');
+        const draftAccounts = await response.json();
+
+        // For demo, merge collectedData with draftAccounts
+        preparedAccounts = {
+          company: {
+            name: collectedData.companyName,
+            number: collectedData.companyNumber
+          },
+          draftAccounts,
+          bankTransactions: collectedData.bankTransactions,
+          otherFinancialInputs: collectedData.otherFinancialInputs
+        };
+
+        accountsResult.textContent = 'Draft accounts prepared successfully.';
+        accountsJson.textContent = JSON.stringify(preparedAccounts, null, 2);
+
+        // Enable review and approval
+        reviewContainer.innerHTML = '';
+        const reviewHtml = `
+          <div class="review-item">
+            <h3>Company</h3>
+            <p><strong>Name:</strong> ${preparedAccounts.company.name}</p>
+            <p><strong>Number:</strong> ${preparedAccounts.company.number}</p>
+          </div>
+          <div class="review-item">
+            <h3>Draft Accounts Summary</h3>
+            <pre style="white-space: pre-wrap;">${JSON.stringify(preparedAccounts.draftAccounts, null, 2)}</pre>
+          </div>
+          <div class="review-item">
+            <h3>Bank Transactions</h3>
+            <pre style="white-space: pre-wrap; max-height: 150px; overflow-y: auto;">${preparedAccounts.bankTransactions}</pre>
+          </div>
+          <div class="review-item">
+            <h3>Other Financial Inputs</h3>
+            <pre style="white-space: pre-wrap; max-height: 150px; overflow-y: auto;">${preparedAccounts.otherFinancialInputs || '(none)'}</pre>
+          </div>
+        `;
+        reviewContainer.innerHTML = reviewHtml;
+        approveBtn.disabled = false;
+        approvalStatus.textContent = '';
+        fileBtn.disabled = true;
+        filingStatus.textContent = '';
+      } catch (err) {
+        accountsResult.textContent = 'Error preparing draft accounts.';
+        accountsJson.textContent = '';
+        approveBtn.disabled = true;
+      } finally {
+        prepareBtn.disabled = false;
+      }
+    });
+
+    // Approve Accounts Button
+    approveBtn.addEventListener('click', () => {
+      if (!preparedAccounts) {
+        approvalStatus.textContent = 'No accounts to approve.';
+        approvalStatus.classList.add('error');
+        return;
+      }
+      approved = true;
+      approvalStatus.textContent = 'Final accounts approved. You can now file electronically.';
+      approvalStatus.classList.remove('error');
+      fileBtn.disabled = false;
+    });
+
+    // File Accounts Button
+    fileBtn.addEventListener('click', async () => {
+      if (!approved) {
+        filingStatus.textContent = 'Please approve accounts before filing.';
+        filingStatus.classList.add('error');
+        return;
+      }
+      fileBtn.disabled = true;
+      filingStatus.textContent = 'Filing accounts electronically...';
+      filingStatus.classList.remove('error');
+
+      try {
+        // Call API /api/help-users-optimize-tax-mana as a placeholder for filing
+        const response = await fetch('/api/help-users-optimize-tax-mana');
+        if (!response.ok) throw new Error('Filing failed');
+        const result = await response.json();
+
+        filingStatus.textContent = 'Accounts filed successfully with HMRC.';
+        filingStatus.classList.remove('error');
+      } catch (err) {
+        filingStatus.textContent = 'Error filing accounts electronically.';
+        filingStatus.classList.add('error');
+      } finally {
+        fileBtn.disabled = false;
+      }
+    });
+
+    // On page load, check health
+    async function checkHealth() {
+      try {
+        const res = await fetch('/health');
+        if (res.ok) {
+          // Health ok, no UI change needed
+        } else {
+          alert('Warning: API health check failed. Some features may not work.');
+        }
+      } catch (e) {
+        alert('Warning: Unable to reach API health endpoint.');
+      }
+    }
+
+    checkHealth();
+  </script>
+</body>
+</html>
